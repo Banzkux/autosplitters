@@ -4,6 +4,7 @@ state("AgentHugo")
     int drNogoHealth3 : 0x33AF18, 0x20, 0x0, 0x0, 0x4, 0x4, 0x54, 0x10C;
     string4 voiceId : 0x35B718;
     bool onFoot : 0x368D58;
+    bool isMainMenu : 0x36A3E8, 0x78;
 }
 
 /*
@@ -56,6 +57,8 @@ startup
     settings.Add("anyFinal", true, "Any% Final split");
     // Avoids incorrectly splitting on garbage.
     vars.finalBattleActive = false;
+
+    vars.readyToStart = false;
 }
 
 onStart
@@ -64,6 +67,7 @@ onStart
     vars.finalBattleActive = false;
     vars.isSneak4Active = false;
     vars.isSneak5Active = false;
+    vars.readyToStart = false;
     vars.playedVoiceIds.Clear();
 }
 
@@ -72,6 +76,20 @@ update
     if (old.drNogoHealth3 != 5000 && current.drNogoHealth3 == 5000) vars.finalBattleActive = true;
     if (old.voiceId != "3088" && current.voiceId == "3088") vars.isSneak4Active = true;
     if (old.voiceId != "3218" && current.voiceId == "3218") vars.isSneak5Active = true;
+}
+
+start
+{
+    // Prepare to start when main menu is left
+    if(old.isMainMenu && !current.isMainMenu)
+    {
+        vars.readyToStart = true;
+    }
+
+    if(vars.readyToStart && !old.isNotLoading && current.isNotLoading)
+    {
+        return true;
+    }
 }
 
 split
