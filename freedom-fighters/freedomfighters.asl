@@ -4,6 +4,7 @@ state("Freedom")
     int levelId : 0x388FF8; // Rebel bases have weird ids, works fine regardless
     bool runStart : 0x388508;
     bool isLoading : 0x3A258C;
+    bool nonFlagMissionCompleted : 0x38D0B0, 0x4, 0x214, 0x2C, 0x94, 0xFC, 0x12C; // Naval/Rebel base
 }
 
 startup
@@ -11,7 +12,7 @@ startup
     settings.Add("Splits", true, "Mission splits");
     settings.CurrentDefaultParent = "Splits";
 
-    // 1: level id, 2: Split name, 3: type(1=comp screen, 2=level change)
+    // 1: level id, 2: Split name, 3: type(1=comp screen, 2=level change, 3=non flag comp screen)
     vars.splits = new List<Tuple<int, string, int>>
     {
         Tuple.Create(292, "Tutorial (Level change)", 2),
@@ -23,8 +24,8 @@ startup
         Tuple.Create(393, "Warehouse District", 1),
         Tuple.Create(369, "Movie Theatre", 1),
         Tuple.Create(372, "Power Plant", 1),
-        Tuple.Create(351, "Naval Base (Level change)", 2),
-        Tuple.Create(352, "Rebel Base (Level change)", 2),
+        Tuple.Create(351, "Naval Base", 3),
+        Tuple.Create(352, "Rebel Base", 3),
         Tuple.Create(344, "TV Station", 1),
         Tuple.Create(366, "High School", 1),
         Tuple.Create(354, "Boat Landing (Level change)", 2),
@@ -60,6 +61,13 @@ split
         else if(entry.Item3 == 2)
         {
             if(old.levelId == entry.Item1 && current.levelId != entry.Item1)
+            {
+                return true;
+            }
+        }
+        else if(entry.Item3 == 3)
+        {
+            if(!old.nonFlagMissionCompleted && current.nonFlagMissionCompleted && current.levelId == entry.Item1)
             {
                 return true;
             }
