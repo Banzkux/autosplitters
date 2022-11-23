@@ -175,7 +175,7 @@ split
     }
 
     // Tatarin
-    if(current.levelId == 351 && !current.isLoading && current.tatarin && settings["tatarin"])
+    if(current.levelId == 351 && !current.isLoading && !old.tatarin && current.tatarin && settings["tatarin"])
     {
         return true;
     }
