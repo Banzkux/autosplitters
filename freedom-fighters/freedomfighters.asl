@@ -4,11 +4,11 @@ state("Freedom")
     int levelId : 0x388FF8; // Rebel bases have weird ids, works fine regardless
     bool runStart : 0x388508;
     bool isLoading : 0x3A258C;
-    bool nonFlagMissionCompleted : 0x38D0B0, 0x4, 0x214, 0x2C, 0x94, 0xFC, 0x12C; // Naval/Rebel base
-    float playerX : 0xC0E50, 0x1E8;
-    float playerY : 0xC0E50, 0x1EC;
-    float playerZ : 0xC0E50, 0x1F0;
-    bool tatarin : 0x38D0C8, 0xC70, 0xA3C;
+    bool nonFlagMissionCompleted : 0x38D0B0, 0x4, 0x234, 0x94, 0xFC, 0xC, 0xEC; // Naval/Rebel base
+    float playerX : 0x74768, 0xC8, 0x3C;
+    float playerY : 0x74768, 0xC8, 0x40;
+    float playerZ : 0x74768, 0xC8, 0x44;
+    bool tatarin : 0x38D0A0, 0x28, 0xE98, 0xFC, 0x43C;
 }
 
 startup
@@ -97,11 +97,13 @@ startup
         return (float) Math.Sqrt(deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ);
     });
 
+    vars.splittedSplits = new HashSet<int>();
     vars.splittedPosSplits = new HashSet<string>();
 }
 
 onStart
 {
+    vars.splittedSplits.Clear();
     vars.splittedPosSplits.Clear();
 }
 
@@ -114,13 +116,14 @@ split
 {
     foreach(var entry in vars.splits)
     {
-        if(!settings[entry.Item1.ToString()]) continue;
+        if(!settings[entry.Item1.ToString()] || vars.splittedSplits.Contains(entry.Item1)) continue;
 
         // Mission complete screen
         if(entry.Item3 == 1)
         {
             if(old.missionCompleted == 0 && current.missionCompleted == 1 && current.levelId == entry.Item1)
             {
+                vars.splittedSplits.Add(entry.Item1);
                 return true;
             }
         }
@@ -129,6 +132,7 @@ split
         {
             if(old.levelId == entry.Item1 && current.levelId != entry.Item1)
             {
+                vars.splittedSplits.Add(entry.Item1);
                 return true;
             }
         }
@@ -136,6 +140,7 @@ split
         {
             if(!old.nonFlagMissionCompleted && current.nonFlagMissionCompleted && current.levelId == entry.Item1)
             {
+                vars.splittedSplits.Add(entry.Item1);
                 return true;
             }
         }
