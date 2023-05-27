@@ -4,7 +4,8 @@ state("Freedom")
     int levelId : 0x388FF8; // Rebel bases have weird ids, works fine regardless
     bool runStart : 0x388508;
     bool isLoading : 0x3A258C;
-    bool nonFlagMissionCompleted : 0x38D0B0, 0x4, 0x234, 0x94, 0xFC, 0xC, 0xEC; // Naval/Rebel base
+    bool navalBaseCompleted : 0x6D718, 0x24, 0x134, 0x48, 0xEC; // Naval and rebel point to same address but the paths change
+    bool rebelBaseCompleted : 0x1C2378, 0x30, 0x54, 0xF8, 0xEC;
     float playerX : 0x74768, 0xC8, 0x3C;
     float playerY : 0x74768, 0xC8, 0x40;
     float playerZ : 0x74768, 0xC8, 0x44;
@@ -16,29 +17,31 @@ startup
     settings.Add("Splits", true, "Mission splits");
     settings.CurrentDefaultParent = "Splits";
 
-    // 1: level id, 2: Split name, 3: type(1=comp screen, 2=level change, 3=non flag comp screen)
-    vars.splits = new List<Tuple<int, string, int>>
+    // 1: level id, 2: Split name, 3: type(1=comp screen, 2=level change, 3=naval comp screen, 4=rebel comp screen)
+    vars.splits = new List<Tuple<int, string, int, bool>>
     {
-        Tuple.Create(292, "Invasion (Level change)", 2),
-        Tuple.Create(371, "Police Station", 1),
-        Tuple.Create(374, "Post Office", 1),
-        Tuple.Create(396, "Fire Station", 1),
-        Tuple.Create(388, "Hotel", 1),
-        Tuple.Create(375, "Harbor", 1),
-        Tuple.Create(393, "Warehouse District", 1),
-        Tuple.Create(369, "Movie Theatre", 1),
-        Tuple.Create(372, "Power Plant", 1),
-        Tuple.Create(351, "Naval Base", 3),
-        Tuple.Create(352, "Rebel Base", 3),
-        Tuple.Create(344, "TV Station", 1),
-        Tuple.Create(366, "High School", 1),
-        Tuple.Create(354, "Boat Landing (Level change)", 2),
-        Tuple.Create(350, "Fort Jay", 1)
+        Tuple.Create(292, "Invasion (Level change)", 2, true),
+        Tuple.Create(371, "Police Station", 1, true),
+        Tuple.Create(374, "Post Office", 1, true),
+        Tuple.Create(396, "Fire Station", 1, true),
+        Tuple.Create(388, "Hotel", 1, true),
+        Tuple.Create(375, "Harbor", 1, true),
+        Tuple.Create(393, "Warehouse District", 1, true),
+        Tuple.Create(369, "Movie Theatre", 1, true),
+        Tuple.Create(372, "Power Plant", 1, true),
+        Tuple.Create(351, "Naval Base", 3, true),
+        Tuple.Create(351, "Naval Base (Level change)", 2, false),
+        Tuple.Create(352, "Rebel Base", 4, true),
+        Tuple.Create(352, "Rebel Base (Level change)", 2, false),
+        Tuple.Create(344, "TV Station", 1, true),
+        Tuple.Create(366, "High School", 1, true),
+        Tuple.Create(354, "Boat Landing (Level change)", 2, true),
+        Tuple.Create(350, "Fort Jay", 1, true)
     };
 
     foreach(var entry in vars.splits)
     {
-        settings.Add(entry.Item1.ToString(), true, entry.Item2);
+        settings.Add(entry.Item1.ToString()+entry.Item3.ToString(), entry.Item4, entry.Item2);
     }
 
     settings.CurrentDefaultParent = null;
@@ -116,7 +119,7 @@ split
 {
     foreach(var entry in vars.splits)
     {
-        if(!settings[entry.Item1.ToString()] || vars.splittedSplits.Contains(entry.Item1)) continue;
+        if(!settings[entry.Item1.ToString()+entry.Item3.ToString()] || vars.splittedSplits.Contains(entry.Item1)) continue;
 
         // Mission complete screen
         if(entry.Item3 == 1)
@@ -138,7 +141,15 @@ split
         }
         else if(entry.Item3 == 3)
         {
-            if(!old.nonFlagMissionCompleted && current.nonFlagMissionCompleted && current.levelId == entry.Item1)
+            if(!old.navalBaseCompleted && current.navalBaseCompleted && current.levelId == entry.Item1)
+            {
+                vars.splittedSplits.Add(entry.Item1);
+                return true;
+            }
+        }
+        else if(entry.Item3 == 4)
+        {
+            if(!old.rebelBaseCompleted && current.rebelBaseCompleted && current.levelId == entry.Item1)
             {
                 vars.splittedSplits.Add(entry.Item1);
                 return true;
